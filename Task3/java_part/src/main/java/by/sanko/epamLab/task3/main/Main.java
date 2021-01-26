@@ -68,6 +68,10 @@ public class Main {
                 }
             }
         }
+        System.out.println("Year = "+year);
+        System.out.println("Month = "+month);
+        System.out.println("lat = "+lat);
+        System.out.println("lng = "+lng);
         LocalDate date = LocalDate.of(year,month,1);
         String answer = downloader.sendRequest(lat,lng, date);
         JSONParser jsonParser = new JSONParser();
