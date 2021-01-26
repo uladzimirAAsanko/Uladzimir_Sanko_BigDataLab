@@ -62,7 +62,7 @@ public class DataBaseDaoImpl implements Dao {
             pst.setString(2,street.getName());
             isStreetAdded = pst.executeUpdate() > 0;
         }catch (SQLException e){
-            System.out.println(e.getMessage());
+
         }
         if(isStreetAdded){
             streetsAdded++;
@@ -75,7 +75,7 @@ public class DataBaseDaoImpl implements Dao {
             pst.setLong(3,street.getId());
             isLocationAdded = pst.executeUpdate() > 0;
         }catch (SQLException e){
-            System.out.println(e.getMessage());
+
         }
         if(isLocationAdded){
             locationsAdded++;
@@ -105,7 +105,7 @@ public class DataBaseDaoImpl implements Dao {
             pst.setDate(2,java.sql.Date.valueOf(status.getDate()));
             isStatusAdded = pst.executeUpdate() > 0;
         }catch (SQLException e){
-            System.out.println(e.getMessage());
+
         }
         return isStatusAdded;
     }
@@ -128,7 +128,7 @@ public class DataBaseDaoImpl implements Dao {
             pst.setDate(12,java.sql.Date.valueOf(crime.getOutcomeStatus().getDate()));
             isCrimeAdded = pst.executeUpdate() > 0;
         }catch (SQLException e){
-            System.out.println(e.getMessage());
+
         }
         return isCrimeAdded;
     }
@@ -150,7 +150,7 @@ public class DataBaseDaoImpl implements Dao {
             pst.setInt(11,-1);
             isCrimeAdded = pst.executeUpdate() > 0;
         }catch (SQLException e){
-            System.out.println(e.getMessage());
+
         }
         return isCrimeAdded;
     }

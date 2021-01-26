@@ -17,8 +17,10 @@ public class Main {
     public static void main(String[] args) {
         Logger logger = LoggerFactory.getLogger(Main.class);
         logger.info("Starting to performance the program");
+        System.out.println("Starting to performance the program");
         HttpDownloaderImpl downloader = new HttpDownloaderImpl();
         if(args == null){
+            System.out.println("User dont write any flags");
             logger.error("User dont write any flags");
             return;
         }
@@ -40,6 +42,7 @@ public class Main {
                     year = Integer.parseInt(args[i + 1]);
                     i++;
                 }catch (NumberFormatException | IndexOutOfBoundsException exception){
+                    System.out.println("Illegal input");
                     logger.error("Illegal input");
                 }
             }
@@ -48,6 +51,7 @@ public class Main {
                     month = Integer.parseInt(args[i + 1]);
                     i++;
                 }catch (NumberFormatException | IndexOutOfBoundsException exception){
+                    System.out.println("Illegal input");
                     logger.error("Illegal input");
                 }
             }
@@ -56,6 +60,7 @@ public class Main {
                     lng = Double.parseDouble(args[i + 1]);
                     i++;
                 }catch (NumberFormatException | IndexOutOfBoundsException exception){
+                    System.out.println("Illegal input");
                     logger.error("Illegal input");
                 }
             }
@@ -64,6 +69,7 @@ public class Main {
                     lat = Double.parseDouble(args[i + 1]);
                     i++;
                 }catch (NumberFormatException | IndexOutOfBoundsException exception){
+                    System.out.println("Illegal input");
                     logger.error("Illegal input");
                 }
             }
@@ -77,8 +83,10 @@ public class Main {
         JSONParser jsonParser = new JSONParser();
         ArrayList<Crime> list = jsonParser.parseWholeText(answer);
         if(list == null || list.isEmpty() || dao == null){
+            System.out.println("Downloaded list of crimes data is null or empty");
             logger.info("Downloaded list of crimes data is null or empty");
         }else{
+            System.out.println("Downloaded list of crimes data is ready ");
             logger.info("Downloaded list of crimes data is ready ");
             try {
                 dao.addInformation(list);
