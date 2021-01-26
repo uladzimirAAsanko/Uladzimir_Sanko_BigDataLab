@@ -1,0 +1,127 @@
+#!/bin/bash
+function isinstalled
+{
+	echo "Checking is $1 installed"
+	if yum list installed $1;
+	then
+		echo "$1 is already installed"
+		result=1
+	else
+		echo "$1 isn't installed"
+		result=0
+	fi
+}
+function javaVer
+{
+        a=`(java -version) 2>&1`
+        if [[ "$a" == *"OpenJDK Runtime"* ]]
+        then
+                result=1
+	else
+		result=0
+        fi
+}
+mvn="maven"
+git="git"
+psql="postgresql-server"
+skipInfo=" > /dev/null"
+javaVer
+one=1
+public=1
+mvns=1
+gits=1
+psqls=1
+while [ -n "$1" ]
+do
+case "$1" in
+-v) public=0 ;;
+-verbose) public=0 ;;
+-h) echo "Hi this script made for installation java 1.8, maven, git, PostgreSql"; echo "If you want to install all this packages just execute this script"; echo "-<v> or -<verbose> will show installition process"; echo "-<mvn> wouldnt install maven on your machine"; echo "-<git> wouldnt install git on your computer"; echo "-<psql> wouldn't install PostgreSql on your computer"; echo "You can combibe all flags and install as you want"; echo "NOTE*: If you already installed PostGreSql but didn't delted it properly (with initdb) script wouldnt work properly"; echo "NOTE**: Java would install on your machine with any parameters"; exit 0 ;;
+-mvn)echo "Maven woudnt install on your machine"; mvns=0 ;;
+-git)echo "Git woudnt install on your machine"; gits=0 ;;
+-psql)echo "PostGreSql woudnt install on your machine"l; psqls=0;;
+*) echo "$1 is not an option" ;;
+esac
+shift
+done
+if [ $result -eq $one ];then
+        echo "Checking next package"
+else
+        echo "Installing java"
+	if [ $public -eq $one ];then
+                sudo yum install java-1.8.0-openjdk-devel -y > /dev/null
+	else
+		sudo dnf install java-1.8.0-openjdk-devel -y
+	fi
+fi
+if [ $mvns -eq $one ];then
+	isinstalled "$mvn"
+else
+	result=1
+	echo "User doesn't want to install maven"
+fi
+username=$USER
+if [ $result -eq $one ];then
+	echo "Checking next package"
+else
+	 echo "Installing maven"
+	if [ $public -eq $one ];then
+                sudo dnf install maven -y  > /dev/null
+        else
+                sudo dnf install maven -y
+        fi
+fi
+if [ $gits -eq $one ];then
+        isinstalled "$git"
+else
+        result=1
+        echo "User doesn't want to install git"
+fi
+if [ $result -eq $one ];then
+        echo "Checking next package"
+else
+        echo "Installing git"
+	if [ $public -eq $one ];then
+                sudo dnf install git -y  > /dev/null
+        else
+                sudo dnf install git -y
+        fi
+fi
+if [ $psqls -eq $one ];then
+        isinstalled "$psql"
+else
+        result=1
+        echo "User doesn't want to install psql"
+fi
+if [ $result -eq $one ];then
+        echo "Ending the script ..."
+else
+        echo "Installing postgresql"
+	if [ $public -eq $one ];then
+                sudo dnf module enable postgresql:12  > /dev/null
+        	sudo dnf install postgresql-server -y  > /dev/null
+        	echo "postgresql-server installed"
+        	sudo postgresql-setup --initdb  > /dev/null
+        	sudo systemctl start postgresql  > /dev/null
+        	sudo systemctl enable postgresql  > /dev/null
+        	sudo -i -u postgres  > /dev/null
+        	createuser "$username" > /dev/null
+        	createdb "$username" > /dev/null
+        	exit
+        else
+                 sudo dnf module enable postgresql:12
+        	sudo dnf install postgresql-server -y
+        	echo "postgresql-server installed"
+        	sudo postgresql-setup --initdb
+        	sudo systemctl start postgresql
+        	sudo systemctl enable postgresql
+        	sudo -i -u postgres
+        	createuser "$username"
+        	createdb "$username"
+        	exit
+        fi
+fi
+
+
+
+
