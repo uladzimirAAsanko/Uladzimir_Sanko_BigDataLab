@@ -1,0 +1,1 @@
+truncate crime_api.outcome_statuses,crime_api.crimes,crime_api.locations,crime_api.streets;
