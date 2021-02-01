@@ -12,19 +12,29 @@ import java.util.function.Function;
 
 
 public class FileDaoImpl implements Dao {
-    private static final String FILE_NAME = "data.csv";
+    private static String DEFAULT_FILENAME = "data.csv";
 
     @Override
-    public boolean addInformation(List<Crime> crimes) throws DaoException {
-        File csvOutputFile = new File(FILE_NAME);
+    public void addInformation(List<Crime> crimes) throws DaoException {
+        File csvOutputFile = new File(DEFAULT_FILENAME);
         try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
-            crimes.stream()
-                    .map((Function<Crime, Object>) Crime::toString)
-                    .forEach(pw::println);
+            for(Crime crime : crimes){
+                pw.write(crime.toString());
+            }
         } catch (FileNotFoundException e) {
-            throw new DaoException(e.getMessage());
+            throw new DaoException("Exception while writing information in file",e);
         }
-        return true;
+    }
+
+    public void writeInFile(List<Crime> crimes, String fileName)  throws DaoException{
+        File csvOutputFile = new File(fileName);
+        try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+            for(Crime crime : crimes){
+                pw.write(crime.toString());
+            }
+        } catch (FileNotFoundException e) {
+            throw new DaoException("Exception while writing information in file",e);
+        }
     }
 
 }

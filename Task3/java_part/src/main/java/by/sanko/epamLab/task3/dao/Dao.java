@@ -6,5 +6,5 @@ import by.sanko.epamLab.task3.exception.DaoException;
 import java.util.List;
 
 public interface Dao {
-    boolean addInformation(List<Crime> crimes) throws DaoException;
+    void addInformation(List<Crime> crimes) throws DaoException;
 }
