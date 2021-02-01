@@ -18,7 +18,6 @@ public class JSONParser {
         ArrayList<Crime> crimes = null;
         try {
             crimes = mapper.readValue(data, new TypeReference<List<Crime>>(){});
-            logger.info("Objects successfully parsed ");
         } catch (IOException e) {
             logger.error("Exception while parsing JSON");
         }

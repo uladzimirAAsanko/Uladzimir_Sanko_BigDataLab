@@ -15,11 +15,14 @@ import by.sanko.epamLab.task3.util.parser.DateParser;
 import by.sanko.epamLab.task3.util.validator.DateValidator;
 import by.sanko.epamLab.task3.util.validator.StringValidator;
 import org.apache.commons.cli.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 
 public class CommandExecutor {
+    private static final Logger logger = LoggerFactory.getLogger(CommandExecutor.class);
     private static Options options = new Options();
 
     static {
@@ -92,7 +95,7 @@ public class CommandExecutor {
                     throw new ServiceException("Illegal arguments");
                 }
                 longitude = StringValidator.validateDouble(data);
-                if(longitude < 0 || longitude > 60){
+                if(longitude < -5 || longitude > 5){
                     throw new ServiceException("Illegal arguments");
                 }
             }
@@ -102,7 +105,7 @@ public class CommandExecutor {
                     throw new ServiceException("Illegal arguments");
                 }
                 latitude = StringValidator.validateDouble(data);
-                if(latitude < -5 || latitude > 5){
+                if(latitude < 0 || latitude > 60){
                     throw new ServiceException("Illegal arguments");
                 }
             }
@@ -130,6 +133,7 @@ public class CommandExecutor {
                             location.getLatitude(),location.getLongitude(),date)));
                 }
             }
+            logger.info("All data downloaded, parsed and added to collection");
             if(dao == null){
                 if(fileName.equals("")){
                     throw new ServiceException("No dao has been chosen");
@@ -147,6 +151,7 @@ public class CommandExecutor {
                     throw new ServiceException("Exception while adding information",e);
                 }
             }
+            logger.info("All data saved by chosen dao");
         } catch (ParseException e) {
             throw new ServiceException("Exception while parsing command line strings",e);
         }
