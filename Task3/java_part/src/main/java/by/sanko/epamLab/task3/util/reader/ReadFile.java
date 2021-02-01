@@ -3,14 +3,11 @@ package by.sanko.epamLab.task3.util.reader;
 import by.sanko.epamLab.task3.entity.Location;
 import by.sanko.epamLab.task3.exception.ServiceException;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 
 public class ReadFile {
-    private static final String FILE_NAME = "LondonStations.csv";
+    private static final String FILE_NAME = "./src/main/resources/LondonStations.csv";
     private static final String LINE_SEPARATOR = ",";
 
     public static ArrayList<Location> readAllLocations() throws ServiceException{
