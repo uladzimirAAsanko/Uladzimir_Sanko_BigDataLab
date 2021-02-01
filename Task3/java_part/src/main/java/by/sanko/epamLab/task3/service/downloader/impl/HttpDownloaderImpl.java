@@ -40,11 +40,10 @@ public class HttpDownloaderImpl implements HttpDownloader {
                 logger.error("Bad api requests or bad internet connection");
                 throw new ServiceException("Bad api requests or bad internet connection");
             }
-            if(responseCode > 499){
-                logger.error("Connection issue");
-                throw new ServiceException("Connection issue");
+            if(responseCode > 499 ){
+                logger.error("Bad api requests or bad internet connection");
+                return answer;
             }
-
             byte[] dataBuffer = new byte[1024];
             int bytesRead = 0;
             StringBuilder builder = new StringBuilder();

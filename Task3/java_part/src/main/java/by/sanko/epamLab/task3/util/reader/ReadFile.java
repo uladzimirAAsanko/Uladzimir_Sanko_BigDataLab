@@ -7,13 +7,14 @@ import java.io.*;
 import java.util.ArrayList;
 
 public class ReadFile {
-    private static final String FILE_NAME = "./src/main/resources/LondonStations.csv";
+    private static final String FILE_NAME = "/LondonStations.csv";
     private static final String LINE_SEPARATOR = ",";
 
     public static ArrayList<Location> readAllLocations() throws ServiceException{
         String line = "";
         ArrayList<Location> locations = new ArrayList<>();
-        try(BufferedReader bufferedReader = new BufferedReader(new FileReader(FILE_NAME))) {
+        try(InputStream stream = ReadFile.class.getResourceAsStream(FILE_NAME);
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream))) {
             while ((line = bufferedReader.readLine()) != null){
                 String[] elements = line.split(LINE_SEPARATOR);
                 double longitude = Double.parseDouble(elements[1]);
