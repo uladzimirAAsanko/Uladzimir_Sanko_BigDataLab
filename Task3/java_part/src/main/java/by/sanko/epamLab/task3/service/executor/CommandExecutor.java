@@ -129,8 +129,11 @@ public class CommandExecutor {
             ArrayList<Crime> crimes = new ArrayList<>();
             for(Location location : locationArrayList){
                 for(LocalDate date : dateArrayList){
-                    crimes.addAll(JSONParser.parseWholeText(downloader.sendRequest(
-                            location.getLatitude(),location.getLongitude(),date)));
+                    ArrayList<Crime> downloadedCrimes = JSONParser.parseWholeText(downloader.sendRequest(
+                            location.getLatitude(),location.getLongitude(),date));
+                    if(downloadedCrimes != null){
+                        crimes.addAll(downloadedCrimes);
+                    }
                 }
             }
             logger.info("All data downloaded, parsed and added to collection");
