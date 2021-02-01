@@ -5,19 +5,23 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ResourceBundle;
 
 public class ConnectionPool {
     private static HikariConfig config = new HikariConfig();
     private static HikariDataSource ds;
+    private static final String FILE_DATABASE_CONFIG = "database";
+    private static final String DriverName = "DriverClassName";
+    private static final String JdbcUrl = "JdbcUrl";
+    private static final String UserName = "UserName";
+    private static final String password = "Password";
 
     static {
-        config.setDriverClassName("org.postgresql.Driver");
-        config.setJdbcUrl( "jdbc:postgresql://localhost:5432/postgres" );
-        config.setUsername( "postgres" );
-        config.setPassword( "root" );
-        config.addDataSourceProperty( "cachePrepStmts" , "true" );
-        config.addDataSourceProperty( "prepStmtCacheSize" , "250" );
-        config.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
+        ResourceBundle bundle = ResourceBundle.getBundle(FILE_DATABASE_CONFIG);
+        config.setDriverClassName(bundle.getString(DriverName));
+        config.setJdbcUrl(bundle.getString(JdbcUrl));
+        config.setUsername(bundle.getString(UserName));
+        config.setPassword(bundle.getString(password));
         ds = new HikariDataSource( config );
     }
 
