@@ -2,19 +2,13 @@ package by.sanko.epamLab.task3.dao.impl;
 
 import by.sanko.epamLab.task3.dao.Dao;
 import by.sanko.epamLab.task3.dao.pool.ConnectionPool;
-import by.sanko.epamLab.task3.entity.Crime;
-import by.sanko.epamLab.task3.entity.Location;
-import by.sanko.epamLab.task3.entity.OutcomeStatus;
-import by.sanko.epamLab.task3.entity.Street;
+import by.sanko.epamLab.task3.entity.*;
 import by.sanko.epamLab.task3.exception.DaoException;
 import by.sanko.epamLab.task3.service.downloader.impl.HttpDownloaderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.List;
 
 public class DataBaseDaoImpl implements Dao {
@@ -31,11 +25,14 @@ public class DataBaseDaoImpl implements Dao {
     private static final String FIND_LOCATION = "SELECT * FROM crime_api.locations WHERE  longitude=? AND latitude=?;";
     private static final String FIND_STATUS = "SELECT * FROM crime_api.outcome_statuses WHERE  category=? AND date=?;";
     private static final String FIND_CRIMES = "SELECT * FROM crime_api.crimes WHERE  crimes_id=?;";
-
-
+    private static final String INSERT_STOP_AND_SEARCH = "INSERT INTO crime_api.stop_and_searches VALUES (DEFAULT,?,?,?,?,?,?,?,?,?,?,?,?,?,?, (SELECT location_id FROM crime_api.locations WHERE latitude=? AND longitude=? AND street_id=?), (SELECT force_id FROM crime_api.forces WHERE name=? AND id=?));";
+    private static final String INSERT_STOP_AND_SEARCH_WITHOUT_FORCE = "INSERT INTO crime_api.stop_and_searches VALUES (DEFAULT,?,?,?,?,?,?,?,?,?,?,?,?,?,?, (SELECT location_id FROM crime_api.locations WHERE latitude=? AND longitude=? AND street_id=?), null);";
+    private static final String INSERT_STOP_AND_SEARCH_WITHOUT_LOCATION = "INSERT INTO crime_api.stop_and_searches VALUES (DEFAULT,?,?,?,?,?,?,?,?,?,?,?,?,?,?, null, null);";
+    private static final String FIND_FORCE = "SELECT * FROM crime_api.forces WHERE id=?;";
+    private static final String INSERT_FORCE = "INSERT INTO crime_api.forces VALUES (DEFAULT,?,?);";
 
     @Override
-    public void addInformation(List<Crime> crimes) throws DaoException {
+    public void addCrimes(List<Crime> crimes) throws DaoException {
         int crimesAdded = 0;
         int statusesAdded = 0;
         int streetsAdded = 0;
@@ -60,6 +57,112 @@ public class DataBaseDaoImpl implements Dao {
         logger.info("Uniq crimes added " + crimesAdded);
     }
 
+    @Override
+    public void addStopAndSearch(List<StopAndSearch> searches) throws DaoException {
+        int locationsAdded = 0;
+        int SaSAdded = 0;
+        int forcesAdded = 0;
+        int streetsAdded = 0;
+        for(StopAndSearch SaS : searches){
+            if(SaS != null) {
+                if (SaS.getLocation() != null && SaS.getLocation().getStreet() != null && insertStreet(SaS.getLocation().getStreet())) {
+                    streetsAdded++;
+                }
+                if (SaS.getOutcomeObject() != null && insertForce(SaS.getOutcomeObject())) {
+                    forcesAdded++;
+                }
+                if (SaS.getLocation() != null && insertLocation(SaS.getLocation())) {
+                    locationsAdded++;
+                }
+                if (insertSaS(SaS)) {
+                    SaSAdded++;
+                }
+            }
+        }
+        logger.info("Uniq streets added " + streetsAdded);
+        logger.info("Uniq  forces added " + forcesAdded);
+        logger.info("Uniq locations added " + locationsAdded);
+        logger.info("Uniq SaSes added " + SaSAdded);
+    }
+
+    private boolean insertForce(Force force) throws DaoException{
+        if(isForceAdded(force)){
+            return false;
+        }
+        boolean isInsert = false;
+        try(Connection connection  = ConnectionPool.getConnection();
+            PreparedStatement pst = connection.prepareStatement(INSERT_FORCE)){
+            pst.setString(1, force.getId());
+            pst.setString(2, force.getName());
+            isInsert = pst.executeUpdate() > 0;
+        } catch (SQLException throwables) {
+            logger.error("Exception while checking if force added" + throwables.getMessage());
+        }
+        return isInsert;
+    }
+
+    private boolean insertSaS(StopAndSearch stopAndSearch){
+        boolean isSasAdded = false;
+        String querry = "";
+        if(stopAndSearch.getOutcomeObject() != null){
+            querry = INSERT_STOP_AND_SEARCH;
+        }else{
+            querry = INSERT_STOP_AND_SEARCH_WITHOUT_FORCE;
+        }
+        if(stopAndSearch.getLocation() == null){
+            querry = INSERT_STOP_AND_SEARCH_WITHOUT_LOCATION;
+        }
+        try(Connection connection  = ConnectionPool.getConnection();
+            PreparedStatement pst = connection.prepareStatement(querry)){
+            pst.setString(1,stopAndSearch.getType());
+            if(stopAndSearch.getInvolvedPerson() == null){
+                pst.setNull(2, Types.BOOLEAN);
+            }else{
+                pst.setBoolean(2,stopAndSearch.getInvolvedPerson());
+            }
+            if(stopAndSearch.getDateTime() == null){
+                pst.setNull(3,Types.DATE);
+            }else{
+                pst.setDate(3, java.sql.Date.valueOf(stopAndSearch.getDateTime().toLocalDate()));
+            }
+            if(stopAndSearch.getOperation() == null){
+                pst.setNull(4, Types.BOOLEAN);
+            }else{
+                pst.setBoolean(4,stopAndSearch.getOperation());
+            }
+            pst.setString(5,stopAndSearch.getOperationName());
+            pst.setString(6,stopAndSearch.getGender());
+            pst.setString(7,stopAndSearch.getAgeRange());
+            pst.setString(8,stopAndSearch.getSelfDefinedEthnicity());
+            pst.setString(9,stopAndSearch.getOfficerDefinedEthnicity());
+            pst.setString(10,stopAndSearch.getLegislation());
+            pst.setString(11,stopAndSearch.getObjectOfSearch());
+            pst.setString(12,stopAndSearch.getOutcome());
+            if(stopAndSearch.getOutcomeLinkedToObjectOfSearch() == null){
+                pst.setNull(13, Types.BOOLEAN);
+            }else{
+                pst.setBoolean(13,stopAndSearch.getOutcomeLinkedToObjectOfSearch());
+            }
+            if(stopAndSearch.getRemovalOfMoreThanOuterClothing() == null){
+                pst.setNull(14, Types.BOOLEAN);
+            }else{
+                pst.setBoolean(14,stopAndSearch.getRemovalOfMoreThanOuterClothing());
+            }
+            if(stopAndSearch.getLocation() != null) {
+                pst.setDouble(15, stopAndSearch.getLocation().getLatitude());
+                pst.setDouble(16, stopAndSearch.getLocation().getLongitude());
+                pst.setInt(17, stopAndSearch.getLocation().getStreet().getId());
+                if (stopAndSearch.getOutcomeObject() != null) {
+                    pst.setString(18, stopAndSearch.getOutcomeObject().getName());
+                    pst.setString(19, stopAndSearch.getOutcomeObject().getId());
+                }
+            }
+            isSasAdded = pst.executeUpdate() > 0;
+        }catch (SQLException e){
+            logger.error("Error while adding StopAndSearch");
+        }
+        return isSasAdded;
+    }
 
     private boolean insertStatus(OutcomeStatus status) throws DaoException{
         if(isStatusAdded(status)){
@@ -72,7 +175,7 @@ public class DataBaseDaoImpl implements Dao {
             pst.setDate(2,java.sql.Date.valueOf(status.getDate()));
             isStatusAdded = pst.executeUpdate() > 0;
         }catch (SQLException e){
-            throw new DaoException("Exception while adding status",e);
+            logger.error("Error while adding StopAndSearch" + e.getMessage());
         }
         return isStatusAdded;
     }
@@ -145,6 +248,19 @@ public class DataBaseDaoImpl implements Dao {
         return isStreetInsert;
     }
 
+    private boolean isForceAdded(Force force) throws DaoException{
+        boolean isAdded = false;
+        ResultSet resultSet = null;
+        try(Connection connection  = ConnectionPool.getConnection();
+            PreparedStatement pst = connection.prepareStatement(FIND_FORCE)) {
+            pst.setString(1,force.getId());
+            resultSet = pst.executeQuery();
+            isAdded = resultSet.next();
+        } catch (SQLException e) {
+            logger.error("Exception while checking if force added" + e.getMessage());
+        }
+        return isAdded;
+    }
     private boolean isStreetAdded(Street street) throws DaoException{
         boolean isAdded = false;
         ResultSet resultSet = null;

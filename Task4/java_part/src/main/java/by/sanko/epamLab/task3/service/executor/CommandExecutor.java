@@ -4,7 +4,9 @@ import by.sanko.epamLab.task3.dao.Dao;
 import by.sanko.epamLab.task3.dao.impl.DataBaseDaoImpl;
 import by.sanko.epamLab.task3.dao.impl.FileDaoImpl;
 import by.sanko.epamLab.task3.entity.Crime;
+import by.sanko.epamLab.task3.entity.Force;
 import by.sanko.epamLab.task3.entity.Location;
+import by.sanko.epamLab.task3.entity.StopAndSearch;
 import by.sanko.epamLab.task3.exception.DaoException;
 import by.sanko.epamLab.task3.exception.ServiceException;
 import by.sanko.epamLab.task3.service.downloader.HttpDownloader;
@@ -34,6 +36,7 @@ public class CommandExecutor {
         options.addOption("lng",true,"Longitude we'd like to download");
         options.addOption("f",true,"Download data to file");
         options.addOption("db",false,"Download data to database");
+        options.addOption("sas",false,"Download data to database");
     }
 
     public void parseAndExecuteCommands(String[] args) throws ServiceException {
@@ -126,17 +129,42 @@ public class CommandExecutor {
             if(year != 0 && month != -1){
                 dateArrayList.add(LocalDate.of(year,month,1));
             }
+            if(cmd.hasOption("sas")){
+                ArrayList<Force> forces = JSONParser.parseForceArray(downloader.downloadForces());
+                ArrayList<StopAndSearch> list = new ArrayList<>();
+                if(forces != null){
+                    for(Force force : forces) {
+                        for (LocalDate date : dateArrayList) {
+                            ArrayList<StopAndSearch> downloadedStopAndSearch = JSONParser.parseStopArray(
+                                    downloader.downloadStopAndSearch(force,date));
+                            if(downloadedStopAndSearch != null){
+                                list.addAll(downloadedStopAndSearch);
+                            }
+                        }
+                    }
+                    if(dao == null){
+                        logger.info("Wrong arguments");
+                        throw new ServiceException();
+                    }else{
+                        try {
+                            dao.addStopAndSearch(list);
+                        } catch (DaoException e) {
+                            throw new ServiceException("Exception while adding sas"+e.getMessage(),e);
+                        }
+                    }
+                }
+            }
             ArrayList<Crime> crimes = new ArrayList<>();
             for(Location location : locationArrayList){
                 for(LocalDate date : dateArrayList){
-                    ArrayList<Crime> downloadedCrimes = JSONParser.parseWholeText(downloader.sendRequest(
+                    ArrayList<Crime> downloadedCrimes = JSONParser.parseCrimesArray(downloader.downloadCrimes(
                             location.getLatitude(),location.getLongitude(),date));
                     if(downloadedCrimes != null){
                         crimes.addAll(downloadedCrimes);
                     }
                 }
             }
-            logger.info("All data downloaded, parsed and added to collection");
+            logger.info("All crimes downloaded, parsed and added to collection");
             if(dao == null){
                 if(fileName.equals("")){
                     throw new ServiceException("No dao has been chosen");
@@ -149,7 +177,7 @@ public class CommandExecutor {
                 }
             }else {
                 try {
-                    dao.addInformation(crimes);
+                    dao.addCrimes(crimes);
                 }catch (DaoException e){
                     throw new ServiceException("Exception while adding information",e);
                 }
